@@ -1,0 +1,86 @@
+name: Tally Connector
+run-name: Tally Connector ${{ inputs.version }} #${{ inputs.release_id || 'manual' }}
+
+# Builds SleetTallyConnector.exe from the live airwix_erp_v2 code (connector/). Started by master admin › App Version Policies
+# (release_id = that row) or by hand. Publishes the Release "tally-connector-v<version>" and, with publish on, the fixed
+# "tally-connector-latest".
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version number (e.g. 1.0.0)
+        type: string
+        required: true
+      erp_ref:
+        description: Branch or commit of airwix_erp_v2 to build from
+        type: string
+        default: main
+      publish:
+        description: Also make it the fixed download link (tally-connector-latest)
+        type: boolean
+        default: true
+      release_id:
+        description: App Version row id (filled in when Sleet starts the build)
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+env:
+  ERP_REPO: VatsalSutariyaDeveloper/airwix_erp_v2
+  SLEET_CLOUD_URL: ${{ vars.SLEET_CLOUD_URL || 'https://app.getsleet.cloud/api' }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Get airwix_erp_v2
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.ERP_REPO }}
+          ref: ${{ inputs.erp_ref }}
+          token: ${{ secrets.ERP_REPO_TOKEN }}
+          path: erp
+          sparse-checkout: connector
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: 1.24.0
+          cache-dependency-path: erp/connector/go.sum
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.11.0
+
+      - name: Test
+        working-directory: erp/connector
+        run: go test ./...
+
+      - name: Build SleetTallyConnector.exe
+        working-directory: erp/connector
+        env:
+          SLEET_VERSION: ${{ inputs.version }}
+          GOTOOLCHAIN: local
+        run: WAILS="$(go env GOPATH)/bin/wails.exe" ./build.sh
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: tally-connector-v${{ inputs.version }}
+          name: Sleet Tally Connector ${{ inputs.version }}
+          body: Built from ${{ env.ERP_REPO }} ${{ inputs.erp_ref }}, for ${{ env.SLEET_CLOUD_URL }}.
+          files: erp/connector/build/bin/SleetTallyConnector.exe
+          make_latest: false
+
+      - name: Publish as the fixed download link
+        if: inputs.publish
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: tally-connector-latest
+          name: Sleet Tally Connector (latest)
+          body: Always the newest build. Download link stays the same.
+          files: erp/connector/build/bin/SleetTallyConnector.exe
+          make_latest: false
