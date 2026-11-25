@@ -9,7 +9,7 @@ The normal way is Sleet's master admin › **App Version Policies** › Add: cho
 | Workflow | Builds (from airwix_erp_v2) | Release |
 |---|---|---|
 | `tally-connector.yml` | `connector/` → `SleetTallyConnector.exe` (Go tests first) | `tally-connector-v<version>`; with publish also `tally-connector-latest` |
-| `offline-server.yml` | the five parts of `installer/README.md` (app image from `deploy/offline/offline.Dockerfile`, Linux system from `installer/linux`, `postgres:16`, `caddy:2`, Microsoft's WSL package), the signed `manifest.json`, and `installer/` → `SleetServerSetup.exe` | `offline-server-v<version>`; with publish also `offline-server-latest` (`manifest.json` + Setup), which Setup and every installed server's update agent read |
+| `offline-server.yml` | the five parts of `installer/README.md` (app image from `deploy/offline/offline.Dockerfile`, Linux system from `installer/linux`, `postgres:16`, `caddy:2`, Microsoft's WSL package), `hashes.json`, and `installer/` → `SleetServerSetup.exe` | `offline-server-v<version>`; with publish also Setup in `offline-server-latest`. Sleet signs the download list itself (`GET /api/offline-server/manifest`) for the version marked current in App Version Policies |
 
 Inputs: `version`, `erp_ref` (airwix_erp_v2 branch or commit, default `main`, the code on production), `publish`, `release_id` (the App Version row, filled in by Sleet; the run is named `... #<release_id>` so Sleet can find it).
 
@@ -27,10 +27,9 @@ This repo (Settings › Secrets and variables › Actions):
 | Name | Kind | Value |
 |---|---|---|
 | `ERP_REPO_TOKEN` | Secret | Classic personal access token, `repo` scope, from an account that can read `airwix_erp_v2` (a fine-grained token cannot reach a repo owned by another personal account) |
-| `OFFLINE_MANIFEST_PRIVATE_KEY` | Secret | `manifest-private.key` (PEM) from `node scripts/offline-manifest.js keys`; signs the download list |
-| `LICENSE_PUBLIC_KEY` | Variable | Public licence key compiled into the offline app (base64, `scripts/offline-license.js keys`) |
-| `SLEET_MANIFEST_KEY` | Variable | Public half of the download-list key, compiled into Setup |
-| `SLEET_CLOUD_URL` | Variable (optional) | Sleet API the apps talk to; default `https://app.getsleet.cloud/api` |
+| `SLEET_CLOUD_URL` | Variable (optional) | Sleet API the apps talk to and the keys come from; default `https://app.getsleet.cloud/api` |
 | `SLEET_REPORT_URL` | Variable (optional) | Where Setup's "Report to Sleet" posts |
+
+No signing key is kept here. The offline build reads the trusted public keys from Sleet (`GET /api/offline-server/trusted-keys?purpose=licence|updates`, managed in master admin › Signing Keys) and compiles them in; the private halves never leave the Sleet server.
 
 The Sleet API (`apps/backend/.env`): `GITHUB_BUILD_TOKEN` (fine-grained token of the account that owns this repo, this repo only, Actions: read and write), optional `GITHUB_BUILD_REPO` (default `DeveloperVivekPatel/sleet-builds`) and `GITHUB_BUILD_ERP_REF` (default `main`).
