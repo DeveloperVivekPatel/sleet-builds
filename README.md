@@ -28,7 +28,7 @@ This repo (Settings › Secrets and variables › Actions):
 |---|---|---|
 | `ERP_REPO_TOKEN` | Secret | Classic personal access token, `repo` scope, from an account that can read `airwix_erp_v2` (a fine-grained token cannot reach a repo owned by another personal account) |
 | `SLEET_CLOUD_URL` | Variable (optional) | Sleet API the apps talk to and the keys come from; default `https://app.getsleet.cloud/api` |
-| `SLEET_REPORT_URL` | Variable (optional) | Where Setup's "Report to Sleet" posts |
+| `SLEET_REPORT_URL` | Variable (optional) | Where Setup's "Report to Sleet" posts; default `<SLEET_CLOUD_URL>/offline-server/report` (saved in master admin › System Logs) |
 
 No signing key is kept here. The offline build reads the trusted public keys from Sleet (`GET /api/offline-server/trusted-keys?purpose=licence|updates`, managed in master admin › Signing Keys) and compiles them in; the private halves never leave the Sleet server.
 

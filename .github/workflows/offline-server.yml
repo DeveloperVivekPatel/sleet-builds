@@ -160,7 +160,7 @@ jobs:
           SLEET_VERSION: ${{ inputs.version }}
           SLEET_MANIFEST_URL: ${{ env.SLEET_CLOUD_URL }}/offline-server/manifest
           SLEET_MANIFEST_KEY: ${{ steps.keys.outputs.updates }}
-          SLEET_REPORT_URL: ${{ vars.SLEET_REPORT_URL }}
+          SLEET_REPORT_URL: ${{ vars.SLEET_REPORT_URL || format('{0}/offline-server/report', env.SLEET_CLOUD_URL) }}
           GOTOOLCHAIN: local
         run: WAILS="$(go env GOPATH)/bin/wails.exe" ./build.sh
 
