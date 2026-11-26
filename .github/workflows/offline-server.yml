@@ -1,5 +1,5 @@
 name: Offline Server
-run-name: Offline Server ${{ inputs.version }} #${{ inputs.release_id || 'manual' }}
+run-name: "Offline Server ${{ inputs.version }} #${{ inputs.release_id || 'manual' }}"
 
 # Builds a full offline edition release from the live airwix_erp_v2 code, the five parts installer/README.md lists:
 # sleet-app.tar (deploy/offline/offline.Dockerfile), sleet-linux.tar.gz (installer/linux), postgres.tar, caddy.tar and

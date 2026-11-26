@@ -1,5 +1,5 @@
 name: Tally Connector
-run-name: Tally Connector ${{ inputs.version }} #${{ inputs.release_id || 'manual' }}
+run-name: "Tally Connector ${{ inputs.version }} #${{ inputs.release_id || 'manual' }}"
 
 # Builds SleetTallyConnector.exe from the live airwix_erp_v2 code (connector/). Started by master admin › App Version Policies
 # (release_id = that row) or by hand. Publishes the Release "tally-connector-v<version>" and, with publish on, the fixed
